@@ -1,21 +1,53 @@
-# WEEK 7 TODO: Complete this Docker Compose file.
-# Requirements:
-# 1. web service built from this repository
-# 2. PostgreSQL service named db
-# 3. Adminer service
-# 4. named PostgreSQL volume
-# 5. environment variables from .env
-# 6. web depends on healthy db
+# SDI 4213 Week 7 — Help Desk as a three-service Compose application.
+#
+#   browser ──8501──► web (Streamlit) ──db:5432──► db (PostgreSQL) ──► pgdata volume
+#   browser ──8080──► adminer ─────────db:5432──►
+#
+# Values written as ${NAME} are read from .env (copy .env.example to .env).
 
 services:
   web:
-    # TODO
+    build: .
+    ports:
+      - "8501:8501"
+    environment:
+      # The service name is the hostname on the Compose network. "localhost"
+      # here would mean the web container itself, where nothing listens on 5432.
+      DATABASE_HOST: db
+      DATABASE_PORT: ${DATABASE_PORT:-5432}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?copy .env.example to .env and set a password}
+      POSTGRES_DB: ${POSTGRES_DB}
+    depends_on:
+      db:
+        condition: service_healthy
 
   db:
-    # TODO
+    image: postgres:17
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?copy .env.example to .env and set a password}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      # $$ escapes Compose's own interpolation, so the shell inside the
+      # container expands the variables from the environment set above.
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 5s
 
   adminer:
-    # TODO
+    image: adminer:5
+    ports:
+      - "8080:8080"
+    environment:
+      ADMINER_DEFAULT_SERVER: db
+    depends_on:
+      db:
+        condition: service_healthy
 
 volumes:
-  # TODO
+  pgdata:
