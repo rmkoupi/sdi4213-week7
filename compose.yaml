@@ -1,0 +1,21 @@
+# WEEK 7 TODO: Complete this Docker Compose file.
+# Requirements:
+# 1. web service built from this repository
+# 2. PostgreSQL service named db
+# 3. Adminer service
+# 4. named PostgreSQL volume
+# 5. environment variables from .env
+# 6. web depends on healthy db
+
+services:
+  web:
+    # TODO
+
+  db:
+    # TODO
+
+  adminer:
+    # TODO
+
+volumes:
+  # TODO
